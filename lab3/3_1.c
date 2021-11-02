@@ -3,6 +3,7 @@
 #include <pthread.h>
 #include <unistd.h>
 #include <time.h>
+#include <stdlib.h>
 #define N 4     //等待区椅子数量
 
 void getDateTime();
@@ -51,7 +52,8 @@ void barber(){
 }
 
 void customer(void *arg){
-    int num = (int)arg;     //传入参数为客人编号
+    int num = *((int*)arg);     //传入参数为客人编号
+
     sem_wait(&mutex);       //获取waiting的锁
     if(waiting < N){    //有空位，可以进入
         getDateTime();
@@ -79,7 +81,7 @@ void customer(void *arg){
     }
 }
 
-int main(){
+int main(int argc, char* argv[]){
     //init sem
     waiting = 0;
     sem_init(&customers,0,0);   //店内顾客数量，影响理发师是否工作
@@ -93,7 +95,7 @@ int main(){
     pthread_t p1[3];
     pthread_t p2;
     
-    pthread_create(&p2,NULL,barber,NULL);   //开启barber线程
+    pthread_create(&p2,NULL,(void *)barber,NULL);   //开启barber线程
     int i=0;
     int cus_num =8;    //顾客数量
 
@@ -102,7 +104,7 @@ int main(){
     for(i=0;i<cus_num;i++){
         a=rand()%6+1;       //1~6
         sleep(a);
-        pthread_create(&(p1[i]),NULL,customer,(void *)i);
+        pthread_create(&(p1[i]),NULL,(void *)customer,(void *)&i);
     }
     
 
@@ -112,7 +114,7 @@ int main(){
         pthread_join(p1[i],NULL);
     }
     
-    
+    return 0;
 }
 
 //gcc -o 3_1.out 3_1.c -lpthread
