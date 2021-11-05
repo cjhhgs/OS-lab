@@ -12,6 +12,7 @@
 
 sem_t mutex1;
 sem_t mutex2;
+sem_t mutex_print;
 sem_t mutex_user[3];
 sem_t mutex_film[3];
 sem_t mutex_out[3];
@@ -49,9 +50,12 @@ void print_user_num(){
     int i;
     for(i=0;i<3;i++)
         sem_wait(&mutex_user[i]);
+    
+    sem_wait(&mutex_print);
     getDateTime();
     printf("当前影片：%d    ",cur_film+1);
     printf("在线人数：  1:%2d    2:%2d    3:%2d\n",user_num[0],user_num[1],user_num[2]);
+    sem_post(&mutex_print);
 
     
     for(i=2;i>=0;i--)
@@ -60,8 +64,11 @@ void print_user_num(){
 
 void broadcast(){
     while(time(NULL)<end_time){ //达到设定最大时间结束放映
+
+        sem_wait(&mutex_print);
         getDateTime();
         printf("直播间休息中，等待用户进入\n");
+        sem_post(&mutex_print);
         
         sem_wait(&mutex1);//等待第一个用户进场，开始循环放映
         sem_post(&mutex1);
@@ -76,8 +83,11 @@ void broadcast(){
                 sem_post(&mutex_user[i]);   //查询完，不需要占用锁了
 
                 //将该影片设为播放状态
+                sem_wait(&mutex_print);
                 getDateTime();
                 printf("影片%d开始放映\n",i+1);
+                sem_post(&mutex_print);
+
                 film_state[i]=1;
                 cur_film = i;
                 sem_post(&mutex_film[i]);   //开放直播间入口
@@ -87,12 +97,18 @@ void broadcast(){
 
                 while(time(NULL)<cur_end_time){ //放映过程，时间到了结束放映
                     //每秒检测一次观影人数
+                    sem_wait(&mutex_print);
                     print_user_num();
+                    sem_post(&mutex_print);
+
                     sem_wait(&mutex_user[i]);
                     int cur_user_num = user_num[i];
                     if(cur_user_num==0){//无人观看，退出
+                        sem_wait(&mutex_print);
                         getDateTime();
                         printf("影片%d已无人观看\n",i+1);
+                        sem_post(&mutex_print);
+
                         sem_post(&mutex_user[i]);
                         break;
                     }
@@ -108,10 +124,12 @@ void broadcast(){
                 sem_wait(&mutex_film[i]);   //关闭用户进入直播间的入口
                 film_state[i]=0;            //将file_state[i]设为0后，现有观众会退出
                 
+                sem_wait(&mutex_print);
                 getDateTime();
                 if(time(NULL)>=cur_end_time)
                     printf("影片播放完毕，");
                 printf("影片%d结束放映\n",i+1);
+                sem_post(&mutex_print);
 
                 sem_wait(&mutex_out[i]);    //等待正在观看i的观众全部离开
                 sem_post(&mutex_out[i]);
@@ -147,15 +165,21 @@ void user(void * arg){
         sem_wait(&mutex_out[film]); //mutex_out[i]为0时表示还有观众，为1时表示观众全部退出
     }                               //第一个观众进入让其变为0，最后一个退出时将其变为1                               
     user_num[film] ++;              //观影人数加1
+    sem_wait(&mutex_print);
+    getDateTime();
     printf("影片%d排队+1\n",film+1);
+    sem_post(&mutex_print);
+
     sem_post(&mutex_user[film]);
 
     sem_post(&mutex1);              //每进一个人就让mutex+1，退出时-1,表示还有没有人在看，控制直播间休息还是继续运行
 
     // 用户等待该纪录片播放
     sem_wait(&mutex_film[film]);    //等待broadcast进程将mutex_file[i]变为1
+    sem_wait(&mutex_print);
     getDateTime();
     printf("新用户进入直播间 %d\n",cur_film+1);
+    sem_post(&mutex_print);
     sem_post(&mutex_film[film]);
 
     
@@ -167,8 +191,10 @@ void user(void * arg){
     //用户退出
     sem_wait(&mutex_user[film]);
     user_num[film]--;
+    sem_wait(&mutex_print);
     getDateTime();
     printf("用户退出直播间，当前人数：%d\n",user_num[film]);
+    sem_post(&mutex_print);
     if(user_num[film]==0){
         sem_post(&mutex_out[film]); //最后一个退出的将mutex_out[i]变1，作用如上所述
     }
@@ -185,8 +211,6 @@ void user_manager(){
         // 随机生成纪录片序号
         int * index = (int *) malloc (sizeof(int));
         *index = rand()%3;
-        getDateTime();
-        //printf("新用户进程：%d\n",*index+1);
         pthread_create(&p, &attr, (void *)user, (void *)index);
         sleep(rand() % USER_MAX_ENTER);
     }
@@ -207,21 +231,29 @@ int main(int argc, char* argv[]){
     sem_init(&mutex2,0,1);
     end_time = time(NULL)+PROCESS_TIME;
     
+    sem_wait(&mutex_print);
     getDateTime();
     printf("broadcast thread starting\n");
+    sem_post(&mutex_print);
     pthread_create(&p1,NULL,(void *)broadcast,NULL);
     
+    sem_wait(&mutex_print);
     getDateTime();
     printf("user thread starting\n");
+    sem_post(&mutex_print);
     pthread_create(&p2,NULL,(void *)user_manager,NULL);
 
 
     pthread_join(p2,NULL);
+    sem_wait(&mutex_print);
     getDateTime();
     printf("user thread ending, no more new user\n");
+    sem_post(&mutex_print);
     pthread_join(p1,NULL);
+    sem_wait(&mutex_print);
     getDateTime();
     printf("broadcast thread ending\n");
+    sem_post(&mutex_print);
 
     return 0;
 }
