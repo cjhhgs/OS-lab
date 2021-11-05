@@ -1,11 +1,12 @@
 #include "philosopher.h"
 
-void *philosopher(void *philosopherNumber) {
+void philosopher(void * philosopherNumber) {
 	while (1) {
-		think(philosopherNumber);
-		pickUp(philosopherNumber);
-		eat(philosopherNumber);
-		putDown(philosopherNumber);
+		int Number = *(int*)(philosopherNumber);
+		think(Number);
+		pickUp(Number);
+		eat(Number);
+		putDown(Number);
 	}
 }
 
@@ -17,6 +18,10 @@ void think(int philosopherNumber) {
 
 void pickUp(int philosopherNumber) {
     /*Your code here*/
+	pthread_mutex_lock(&mutex_all);
+	pthread_mutex_lock(&chopsticks[philosopherNumber]);
+	pthread_mutex_lock(&chopsticks[(philosopherNumber+1)%5]);
+	pthread_mutex_unlock(&mutex_all);
 }
 
 void eat(int philosopherNumber) {
@@ -27,4 +32,6 @@ void eat(int philosopherNumber) {
 
 void putDown(int philosopherNumber) {
     /*Your code here*/
+	pthread_mutex_unlock(&chopsticks[philosopherNumber]);
+	pthread_mutex_unlock(&chopsticks[(philosopherNumber+1)%5]);
 }

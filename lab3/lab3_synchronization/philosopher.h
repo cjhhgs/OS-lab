@@ -5,12 +5,13 @@
 #include <stdlib.h>
 
 #define NUMBER_OF_PHILOSOPHERS 5
-void *philosopher(void *);
+void philosopher(void *);
 void think(int);
 void pickUp(int);
 void eat(int);
 void putDown(int);
 
 pthread_mutex_t chopsticks[NUMBER_OF_PHILOSOPHERS];
+pthread_mutex_t mutex_all;
 pthread_t philosophers[NUMBER_OF_PHILOSOPHERS];
 pthread_attr_t attributes[NUMBER_OF_PHILOSOPHERS];
