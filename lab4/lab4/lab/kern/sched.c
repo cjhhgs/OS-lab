@@ -4,9 +4,70 @@
 #include <kern/env.h>
 #include <kern/pmap.h>
 #include <kern/monitor.h>
+#include <kern/sched.h>
 
 void sched_halt(void);
 
+/*
+//myself
+void sched_yield2(void)
+{
+	cprintf("yield2");
+	int start = 0;
+	time_slice+=1;
+	if(time_slice == MAXTIME){
+		//所有env的优先级变0
+		cprintf("max time slice\n");
+		time_slice=0;
+		curQ=0;
+		for(int i=0;i<NENV;i++){
+			if(envs[i].env_status==ENV_RUNNABLE){
+				envs[i].Q=0;
+				envs[i].runtime=0;
+			}
+		}
+
+		if(curenv){
+			env_run(curenv);
+		}
+	}
+	if(curenv){
+		curenv->runtime+=1;
+			//如果运行时间到了，降级
+		start= ENVX(curenv->env_id) + 1;
+		if(curenv->runtime >= limite[curenv->Q]){
+			curenv->Q+=1;
+			curenv->runtime = 0;
+			//换下一个运行
+
+		}
+			//如果还没到，继续
+		else{
+			env_run(curenv);
+		}
+	}
+
+	for(int j=0;j<4;j++,curQ=(curQ+1)%4){
+		for (int i = 0; i < NENV ; i++){
+			j = (start + i) % NENV;
+			if (envs[j].env_status == ENV_RUNNABLE && envs[j].Q==curQ)
+			{
+				env_run(&envs[j]);
+			}
+		}
+		//找了一圈，没有curQ优先级的了，找下一个优先级
+	}
+	//如果到这里了，说明没找到可以运行的
+	if (curenv && curenv->env_status == ENV_RUNNING)
+	{
+		env_run(curenv);
+	}
+	
+	sched_halt();
+
+}
+
+*/
 
 // Choose a user environment to run and run it.
 void sched_yield(void)
