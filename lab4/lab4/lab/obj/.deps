@@ -98,6 +98,7 @@ obj/kern/env.o: kern/env.c inc/x86.h inc/types.h inc/mmu.h inc/error.h \
  inc/string.h inc/assert.h inc/stdio.h inc/stdarg.h inc/elf.h kern/env.h \
  inc/env.h inc/trap.h inc/memlayout.h kern/cpu.h kern/pmap.h kern/trap.h \
  kern/monitor.h kern/sched.h kern/spinlock.h
+<<<<<<< HEAD
 obj/user/faultreadkernel.o: user/faultreadkernel.c inc/lib.h inc/types.h \
  inc/stdio.h inc/stdarg.h inc/string.h inc/error.h inc/assert.h inc/env.h \
  inc/trap.h inc/memlayout.h inc/mmu.h inc/syscall.h
@@ -108,11 +109,20 @@ obj/user/faultwritekernel.o: user/faultwritekernel.c inc/lib.h \
  inc/types.h inc/stdio.h inc/stdarg.h inc/string.h inc/error.h \
  inc/assert.h inc/env.h inc/trap.h inc/memlayout.h inc/mmu.h \
  inc/syscall.h
+=======
+obj/kern/printf.o: kern/printf.c inc/types.h inc/stdio.h inc/stdarg.h
+obj/kern/pmap.o: kern/pmap.c inc/x86.h inc/types.h inc/mmu.h inc/error.h \
+ inc/string.h inc/assert.h inc/stdio.h inc/stdarg.h kern/pmap.h \
+ inc/memlayout.h kern/kclock.h kern/env.h inc/env.h inc/trap.h kern/cpu.h
+obj/kern/entrypgdir.o: kern/entrypgdir.c inc/mmu.h inc/types.h \
+ inc/memlayout.h
+>>>>>>> 51c6389f67d9a747fa447110cb348019b66256ad
 obj/kern/init.o: kern/init.c inc/stdio.h inc/stdarg.h inc/string.h \
  inc/types.h inc/assert.h kern/monitor.h kern/console.h kern/pmap.h \
  inc/memlayout.h inc/mmu.h kern/kclock.h kern/env.h inc/env.h inc/trap.h \
  kern/cpu.h kern/trap.h kern/sched.h kern/picirq.h inc/x86.h \
  kern/spinlock.h
+<<<<<<< HEAD
 obj/user/buggyhello.o: user/buggyhello.c inc/lib.h inc/types.h \
  inc/stdio.h inc/stdarg.h inc/string.h inc/error.h inc/assert.h inc/env.h \
  inc/trap.h inc/memlayout.h inc/mmu.h inc/syscall.h
@@ -184,3 +194,5 @@ obj/lib/pgfault.o: lib/pgfault.c inc/lib.h inc/types.h inc/stdio.h \
  inc/stdarg.h inc/string.h inc/error.h inc/assert.h inc/env.h inc/trap.h \
  inc/memlayout.h inc/mmu.h inc/syscall.h
 obj/kern/readline.o: lib/readline.c inc/stdio.h inc/stdarg.h inc/error.h
+=======
+>>>>>>> 51c6389f67d9a747fa447110cb348019b66256ad
