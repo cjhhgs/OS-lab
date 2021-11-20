@@ -4,7 +4,6 @@
 #include <kern/env.h>
 #include <kern/pmap.h>
 #include <kern/monitor.h>
-#include <kern/sched.h>
 
 #define MAXTIME 20
 int curTime=0;
