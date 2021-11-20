@@ -14,6 +14,9 @@
 #include <kern/cpu.h>
 #include <kern/spinlock.h>
 
+extern int curTime;
+extern int nexTime;
+
 static struct Taskstate ts;
 
 /* For debugging, so print_trapframe can distinguish between printing
@@ -274,6 +277,7 @@ trap_dispatch(struct Trapframe *tf)
 	// LAB 4: Your code here.
 	if (tf->tf_trapno == IRQ_OFFSET + IRQ_TIMER)
 	{
+		nexTime+=1;
 		lapic_eoi();
 		sched_yield();
 		return;

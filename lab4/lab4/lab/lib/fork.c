@@ -98,7 +98,7 @@ fork(void)
 	// LAB 4: Your code here.
 	extern void _pgfault_upcall(void);
 	set_pgfault_handler(pgfault);	
-	envid_t envid = sys_exofork();	
+	envid_t envid = sys_exofork();
 	if (envid == 0) {				
 		thisenv = &envs[ENVX(sys_getenvid())];
 		return 0;
