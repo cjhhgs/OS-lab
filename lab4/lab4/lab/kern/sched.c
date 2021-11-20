@@ -6,34 +6,36 @@
 #include <kern/monitor.h>
 
 #define MAXTIME 20
-int curTime=0;
-int nexTime=0;
-int curQ=0;
-const int limite[4]={1,2,4,20};
+int curTime=0;		//当前时间片
+int nexTime=0;		//用于判断是否到了下一个时间片
+int curQ=0;			//当前的优先级
+const int limite[4]={1,2,4,20};		//各优先级的时间片数
 
 void sched_halt(void);
 
+
+// MFQ 调度算法
 void sched_yield(void)
 {
 	struct Env *idle;
 
 	int flag =0;
 	int j=0;
-	if(nexTime>curTime){
+	if(nexTime>curTime){	//时钟中断会使nexTime+1, 以此判断何种情况调度了sched_yield
 		curTime+=1;
 		flag=1;
 	}
 
 	int start = 0;
 
-	if(flag==1){		//如果是时间片到了。
-		if(curTime == MAXTIME){
-			//所有env的优先级变0
+	//如果是一个时间片到了。
+	if(flag==1){		
+		if(curTime == MAXTIME){		//当时间片到了最大20
 			//cprintf("max time slice\n");
-			curTime=0;
+			curTime=0;		//重置
 			nexTime=0;
 			curQ=0;
-			for(int i=0;i<NENV;i++){
+			for(int i=0;i<NENV;i++){	//所有env的优先级变0, 重置runtime
 				envs[i].Q=0;
 				envs[i].runtime=0;
 				
@@ -42,24 +44,23 @@ void sched_yield(void)
 
 		if(curenv){
 			curenv->runtime+=1;
-				//如果运行时间到了，降级
 			start= ENVX(curenv->env_id) + 1;
+			//如果运行时间到了，优先级降级，换下一个运行
 			if(curenv->runtime >= limite[curenv->Q]){
 				curenv->Q+=1;
 				curenv->runtime = 0;
-				//换下一个运行
-
 			}
-				//如果还没到，继续
+			//如果还没到，继续运行
 			else{
 				env_run(curenv);
 			}
 		}
 
-		for(curQ=0;curQ<4;curQ++){
-			for (int i = 0; i < NENV ; i++){
+		//选择下一个运行的env
+		for(curQ=0;curQ<4;curQ++){		//优先级从高到低
+			for (int i = 0; i < NENV ; i++){	//从curenv的下一个开始选，循环整个数组
 				j = (start + i) % NENV;
-				if (envs[j].env_status == ENV_RUNNABLE && envs[j].Q==curQ)
+				if (envs[j].env_status == ENV_RUNNABLE && envs[j].Q==curQ)	//不仅要RUNNABLE,还要Q==curQ
 				{
 					//cprintf("yield %d\n",j);
 					env_run(&envs[j]);
@@ -72,17 +73,17 @@ void sched_yield(void)
 		{
 			env_run(curenv);
 		}
-		
 		sched_halt();
 	}
 
-	else{	//没到时间，主动放弃
+	else{	//没到一个时间片，是env主动放弃
 		
 		if (curenv)
 		{
 			start = ENVX(curenv->env_id) + 1; 
 		}
 
+		//选择下一个运行的env
 		for(curQ=0;curQ<4;curQ++){
 			for (int i = 0; i < NENV ; i++){
 				j = (start + i) % NENV;
@@ -103,6 +104,7 @@ void sched_yield(void)
 
 }
 
+//原来的调度算法
 // Choose a user environment to run and run it.
 void sched_yield2(void)
 {
